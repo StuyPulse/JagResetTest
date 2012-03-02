@@ -52,29 +52,17 @@ public class JagResetTest extends SimpleRobot {
      * This function is called once each time the robot enters operator control.
      */
     public void operatorControl() {
-        double setpoint = 0;
         while (true) {
-            try {
-                jag.setX(setpoint);
-                if (jag.getPowerCycled()) {
-                    resetJag();
-                }
-            } catch (CANTimeoutException e) {
-                try {
-                    resetJag();
-                }
-                catch (CANTimeoutException e1) {
-                    
-                }
-            }
-
+            
             try {
                 jag.setPID(SmartDashboard.getDouble("P"), SmartDashboard.getDouble("I"), SmartDashboard.getDouble("D"));
-            } 
+                jag.setX(SmartDashboard.getDouble("setpoint"));
+            }
             catch (NetworkTableKeyNotDefined e) {
                 SmartDashboard.putDouble("P", 0);
                 SmartDashboard.putDouble("I", 0);
                 SmartDashboard.putDouble("D", 0);
+                SmartDashboard.putDouble("setpoint", 0);
             }
             catch (CANTimeoutException e) {
                 try {
