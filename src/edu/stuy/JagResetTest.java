@@ -22,6 +22,15 @@ import edu.wpi.first.wpilibj.networktables.NetworkTableKeyNotDefined;
  */
 public class JagResetTest extends SimpleRobot {
     CANJaguar jag;
+    CurrentThing currentThing;
+    Joystick jstick;
+
+
+    public JagResetTest() {
+        currentThing = new CurrentThing(4);
+        currentThing.start();
+        jstick = new Joystick(1);
+    }
 
     public void robotInit() {
         try {
@@ -32,13 +41,19 @@ public class JagResetTest extends SimpleRobot {
         }
     }
 
-    public void resetJag() throws CANTimeoutException {
+    public void resetJag() {
+        try {
         jag = new CANJaguar(3);
         jag.setPID(1, 0, 0);
         jag.changeControlMode(CANJaguar.ControlMode.kSpeed);
         jag.setSpeedReference(CANJaguar.SpeedReference.kEncoder);
         jag.configEncoderCodesPerRev(250);
         jag.enableControl();
+        }
+        catch (CANTimeoutException e) {
+          System.out.println("In resetJag: ");
+          e.printStackTrace();
+        }
     }
 
     /**
@@ -52,8 +67,10 @@ public class JagResetTest extends SimpleRobot {
      * This function is called once each time the robot enters operator control.
      */
     public void operatorControl() {
-        while (true) {
-            
+        while (isOperatorControl() && isEnabled()) {
+            if (jstick.getRawButton(1)) {
+                resetJag();
+            }
             try {
                 jag.setPID(SmartDashboard.getDouble("P"), SmartDashboard.getDouble("I"), SmartDashboard.getDouble("D"));
                 jag.setX(SmartDashboard.getDouble("setpoint"));
@@ -65,12 +82,6 @@ public class JagResetTest extends SimpleRobot {
                 SmartDashboard.putDouble("setpoint", 0);
             }
             catch (CANTimeoutException e) {
-                try {
-                    resetJag();
-                }
-                catch (CANTimeoutException e1) {
-
-                }
             }
 
             try {
@@ -84,14 +95,9 @@ public class JagResetTest extends SimpleRobot {
                 SmartDashboard.putBoolean("power cycled", jag.getPowerCycled());
 
             } catch (Exception e) {
-                try {
-                    resetJag();
-                }
-                catch (CANTimeoutException e1) {
-
-                }
             }
 
+            SmartDashboard.putDouble("Current thing", currentThing.getCurrent());
         }
     }
 }
